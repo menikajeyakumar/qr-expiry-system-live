@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Expiry Verification System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>QR Code Expiry Detector</h2>
+        
+        <!-- Section 1: Generate QR Code (For Admin/Testing) -->
+        <div class="card">
+            <h3>Generate QR Code</h3>
+            <input type="text" id="prodName" placeholder="Product Name (e.g., Milk)">
+            <input type="text" id="qrId" placeholder="Unique QR ID (e.g., QR_MILK_001)">
+            <input type="date" id="expiryDate">
+            <button onclick="generateQR()">Generate QR Code</button>
+            <div id="qrResult"></div>
+        </div>
+
+        <!-- Section 2: Scan/Verify Product Expiry -->
+        <div class="card">
+            <h3>Verify Product Expiry</h3>
+            <input type="text" id="scanInput" placeholder="Enter or Scan QR ID here...">
+            <button onclick="verifyProduct()">Check Expiry Status</button>
+            
+            <!-- Intha id-la thaan RED / GREEN status show aagum -->
+            <div id="statusResult" class="status-box"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

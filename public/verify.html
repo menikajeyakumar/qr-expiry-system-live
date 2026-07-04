@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Product Verification</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+        <h2 style="color: #007bff;">Product Expiry Scanner</h2>
+        <p style="text-align: center; color: #666;">Scanning via QR Code Link...</p>
+        
+        <!-- இங்க தான் கஸ்டமர்க்கு 🔴 RED / 🟢 GREEN சிக்னல் காட்டும் -->
+        <div id="statusResult" class="status-box" style="display: block; min-height: 100px; padding: 30px; font-size: 20px;">
+            Checking product database...
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="window.location.href='/'" style="background-color: #6c757d; max-width: 200px;">Go to Admin Panel</button>
+        </div>
+    </div>
+
+    <script>
+        // க்யூஆர் கோடு லிங்க்ல இருக்குற ID-ஐ தானா எடுத்து செக் பண்ற லாஜிக்
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrCodeId = urlParams.get('id');
+            const statusResult = document.getElementById('statusResult');
+
+            if (!qrCodeId) {
+                statusResult.innerHTML = "⚠️ Invalid QR Code Link!";
+                statusResult.className = "status-box not-found";
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/verify-expiry/${qrCodeId}`);
+                statusResult.className = "status-box"; 
+
+                if (response.status === 404) {
+                    statusResult.innerHTML = "⚠️ Product Not Found in Database!";
+                    statusResult.className = "status-box not-found";
+                    return;
+                }
+
+                const product = await response.json();
+                
+                if (product.isExpired) {
+                    statusResult.innerHTML = `🔴 EXPIRED PRODUCT!<br><br>
+                                              <span style="font-size:24px;">⚠️ DO NOT BUY ⚠️</span><br><br>
+                                              <b>Product:</b> ${product.product_name}<br>
+                                              <b>Expired On:</b> ${product.expiry_date_formatted}`;
+                    statusResult.className = "status-box expired";
+                } else {
+                    statusResult.innerHTML = `🟢 VALID PRODUCT (SAFE)<br><br>
+                                              <span style="font-size:24px;">✅ SAFE TO USE ✅</span><br><br>
+                                              <b>Product:</b> ${product.product_name}<br>
+                                              <b>Expiry Date:</b> ${product.expiry_date_formatted}`;
+                    statusResult.className = "status-box valid";
+                }
+            } catch (err) {
+                statusResult.innerHTML = "Error verifying product.";
+                statusResult.className = "status-box not-found";
+            }
+        };
+    </script>
+</body>
+</html>
