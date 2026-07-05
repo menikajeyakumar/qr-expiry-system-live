@@ -3,30 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Expiry Verification System</title>
-    <link rel="stylesheet" href="style.css">
+    <title>QR Code Expiry Detector</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .section:last-child { border: none; }
+        h3 { color: #0066cc; margin-top: 0; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #0066cc; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #0052a3; }
+        img { display: block; margin: 15px auto; max-width: 180px; border: 1px solid #ddd; padding: 5px; border-radius: 5px; background: white; }
+        .status-box { padding: 15px; margin-top: 15px; border-radius: 8px; font-weight: bold; text-align: center; border: 1px solid transparent; display: none; }
+    </style>
 </head>
 <body>
+
     <div class="container">
         <h2>QR Code Expiry Detector</h2>
-        
-        <!-- Section 1: Generate QR Code (For Admin/Testing) -->
-        <div class="card">
+
+        <div class="section">
             <h3>Generate QR Code</h3>
-            <input type="text" id="prodName" placeholder="Product Name (e.g., Milk)">
-            <input type="text" id="qrId" placeholder="Unique QR ID (e.g., QR_MILK_001)">
-            <input type="date" id="expiryDate">
+            
+            <label>Product Name:</label>
+            <input type="text" id="pName" placeholder="e.g., Milk">
+            
+            <label>Unique QR ID:</label>
+            <input type="text" id="pId" placeholder="e.g., QR_MILK_001">
+            
+            <label>Expiry Date:</label>
+            <input type="date" id="pExpiry">
+            
             <button onclick="generateQR()">Generate QR Code</button>
-            <div id="qrResult"></div>
+            
+            <img id="qrCodeImage" src="" alt="QR Code will appear here" style="display: none;">
         </div>
 
-        <!-- Section 2: Scan/Verify Product Expiry -->
-        <div class="card">
+        <div class="section">
             <h3>Verify Product Expiry</h3>
-            <input type="text" id="scanInput" placeholder="Enter or Scan QR ID here...">
+            
+            <label>Enter or Scan QR ID:</label>
+            <input type="text" id="vId" placeholder="Enter QR ID here">
+            
             <button onclick="verifyProduct()">Check Expiry Status</button>
             
-            <!-- Intha id-la thaan RED / GREEN status show aagum -->
             <div id="statusResult" class="status-box"></div>
         </div>
     </div>
