@@ -1,5 +1,5 @@
 const express = require('express');
-const { Pool } = require('pg'); // MySQL-க்கு பதிலா PostgreSQL (pg) பயன்படுத்துகிறோம்
+const { Pool } = require('pg'); // PostgreSQL (pg) பயன்படுத்தி விபரங்களைச் சேமிக்கிறோம்
 const qrcode = require('qrcode');
 require('dotenv').config();
 
@@ -14,11 +14,11 @@ app.use(express.static('public'));
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false // Cloud deployment-க்கு இது முக்கியம்
+        rejectUnauthorized: false // Cloud (Render)-ல் ரன் ஆக இது மிக முக்கியம்
     }
 });
 
-// சர்வர் ஸ்டார்ட் ஆகும்போது டேபிள் தானாக உருவாகும் லாஜிக்
+// சர்வர் ஸ்டார்ட் ஆகும்போது டேட்டாபேஸில் டேபிள் தானாக உருவாகும் லாஜிக்
 const createTableQuery = `
     CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -45,7 +45,26 @@ app.get('/api/generate-qr', async (req, res) => {
     }
 });
 
-// 2. API: Expiry Date-ai Verify Seidhal (PostgreSQL Timezone Error Fixed 🔴/🟡/🟢)
+// 2. API: புது பொருளை டேட்டாபேஸில் சேமிக்க (Add Product to Database)
+app.post('/api/add-product', async (req, res) => {
+    const { product_name, expiry_date, qr_code_id } = req.body;
+
+    if (!product_name || !expiry_date || !qr_code_id) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // ஏற்கனவே அதே QR ID இருந்தால் அப்டேட் செய்யும், இல்லை என்றால் புதியதாகச் சேமிக்கும் லாஜிக்
+    const sql = 'INSERT INTO products (product_name, expiry_date, qr_code_id) VALUES ($1, $2, $3) ON CONFLICT (qr_code_id) DO UPDATE SET product_name = $1, expiry_date = $2';
+    
+    try {
+        await pool.query(sql, [product_name, expiry_date, qr_code_id]);
+        res.json({ success: true, message: 'Product saved to database successfully!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 3. API: Expiry Date-ai Verify Seidhal (PostgreSQL Timezone Error Fixed 🔴/🟡/🟢)
 app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
     const { qrCodeId } = req.params;
     const sql = 'SELECT product_name, expiry_date FROM products WHERE qr_code_id = $1';
@@ -59,15 +78,14 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
 
         const product = results.rows[0];
         
-        // 1. PostgreSQL தேதியை 'YYYY-MM-DD' ஸ்ட்ரிங்காக மாற்றி, லோக்கல் நள்ளிரவாக செட் செய்கிறோம்
+        // லோக்கல் நள்ளிரவு நேரமாக மாற்றி டைம்சோன் எர்ரர் வராமல் துல்லியமாகக் கணக்கிடுகிறோம்
         const rawDate = new Date(product.expiry_date);
         const expiryDate = new Date(rawDate.getFullYear(), rawDate.getMonth(), rawDate.getDate(), 0, 0, 0, 0);
 
-        // 2. இன்றைய தேதியையும் லோக்கல் நள்ளிரவாக செட் செய்கிறோம்
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
-        // 3. நாட்களை மிகத் துல்லியமாகக் கணக்கிடுகிறோம்
+        // நாட்களின் வித்தியாசத்தைக் கணக்கிடுதல்
         const timeDiff = expiryDate.getTime() - today.getTime();
         const daysLeft = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
@@ -81,7 +99,7 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
             isNearExpiry = true;    // இன்னும் 30 நாட்களுக்குள் காலாவதி ஆகப்போகிறது 🟡
         }
 
-        const formattedDate = expiryDate.toLocaleDateString('en-GB'); // DD-MM-YYYY format
+        const formattedDate = expiryDate.toLocaleDateString('en-GB'); // DD-MM-YYYY வடிவமைப்பு
 
         res.json({
             product_name: product.product_name,
@@ -94,20 +112,8 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
         return res.status(500).json({ error: err.message });
     }
 });
-// 3. API: புது பொருளை டேட்டாபேஸில் சேமிக்க (Add Product to Database)
-app.post('/api/add-product', async (req, res) => {
-    const { product_name, expiry_date, qr_code_id } = req.body;
 
-    if (!product_name || !expiry_date || !qr_code_id) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    const sql = 'INSERT INTO products (product_name, expiry_date, qr_code_id) VALUES ($1, $2, $3) ON CONFLICT (qr_code_id) DO UPDATE SET product_name = $1, expiry_date = $2';
-    
-    try {
-        await pool.query(sql, [product_name, expiry_date, qr_code_id]);
-        res.json({ success: true, message: 'Product saved to database successfully!' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+// சர்வர் ரன் ஆகும் போர்ட் செட்டப்
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
