@@ -17,20 +17,19 @@ async function generateQR() {
         });
         const saveResult = await saveResponse.json();
 
+        // இங்க saveResult.success செக் செய்யப்படுகிறது
         if (saveResponse.ok && saveResult.success) {
-            // க்யூஆர் கோடு இமேஜை சர்வரில் இருந்து பெறுகிறோம்
             const qrResponse = await fetch(`/api/generate-qr?text=${encodeURIComponent(qrId)}`);
             const qrData = await qrResponse.json();
             
-            // க்யூஆர் இமேஜை ஸ்கிரீனில் காண்பிக்கிறோம்
             qrImgTag.src = qrData.qrImage;
-            qrImgTag.style.display = 'block'; 
+            qrImgTag.style.display = 'block'; // கியூஆர் ஸ்கேனர் பெருசா டிஸ்ப்ளே ஆகும்
             alert("🎉 Product saved to Database & QR Code Generated!");
         } else {
-            alert("❌ Error: " + saveResult.error);
+            alert("❌ Database Save Error: " + saveResult.error);
         }
     } catch (err) {
-        alert("❌ Something went wrong!");
+        alert("❌ Something went wrong while saving!");
     }
 }
 
@@ -45,7 +44,7 @@ async function verifyProduct() {
 
     try {
         resultDiv.style.display = "block";
-        resultDiv.innerHTML = "🔄 Checking...";
+        resultDiv.innerHTML = "🔄 Checking status from Database...";
         resultDiv.style.backgroundColor = "#eee";
         resultDiv.style.color = "#333";
         resultDiv.style.borderColor = "#ccc";
@@ -62,14 +61,14 @@ async function verifyProduct() {
 
         const product = await response.json();
 
-        // 🔴 1. காலாவதியான பொருள் (Expired Product)
+        // 🔴 1. Expired நிலவரம்
         if (product.isExpired) {
-            resultDiv.innerHTML = `🔴 <b>EXPIRED PRODUCT</b><br><br>Product: ${product.product_name}<br>Expiry: ${product.expiry_date_formatted}<br><small>(This product cannot be used)</small>`;
+            resultDiv.innerHTML = `🔴 <b>EXPIRED PRODUCT</b><br><br>Product: ${product.product_name}<br>Expiry: ${product.expiry_date_formatted}<br><small>(Do Not Use!)</small>`;
             resultDiv.style.backgroundColor = "#f8d7da";
             resultDiv.style.color = "#721c24";
             resultDiv.style.borderColor = "#f5c6cb";
         } 
-        // 🟢 2. நல்ல பொருள் (Valid Product) - மஞ்சள் நிறம் இல்லாமல் நேரடியாகப் பச்சை காட்டும்
+        // 🟢 2. Valid நிலவரம் (மஞ்சள் இல்லாமல் நேரடியாக பச்சை காட்டும்)
         else {
             resultDiv.innerHTML = `🟢 <b>VALID PRODUCT (SAFE)</b><br><br>Product: ${product.product_name}<br>Expiry: ${product.expiry_date_formatted}<br><small>(${product.daysLeft} days remaining)</small>`;
             resultDiv.style.backgroundColor = "#d4edda";
