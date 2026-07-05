@@ -93,3 +93,20 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+// 3. API: புது பொருளை டேட்டாபேஸில் சேமிக்க (Add Product to Database)
+app.post('/api/add-product', async (req, res) => {
+    const { product_name, expiry_date, qr_code_id } = req.body;
+
+    if (!product_name || !expiry_date || !qr_code_id) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const sql = 'INSERT INTO products (product_name, expiry_date, qr_code_id) VALUES ($1, $2, $3) ON CONFLICT (qr_code_id) DO UPDATE SET product_name = $1, expiry_date = $2';
+    
+    try {
+        await pool.query(sql, [product_name, expiry_date, qr_code_id]);
+        res.json({ success: true, message: 'Product saved to database successfully!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
