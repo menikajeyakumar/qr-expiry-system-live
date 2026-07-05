@@ -45,7 +45,7 @@ app.get('/api/generate-qr', async (req, res) => {
     }
 });
 
-// 2. API: Expiry Date-ai Verify Seidhal (PostgreSQL version 🔴/🟡/🟢)
+// 2. API: Expiry Date-ai Verify Seidhal (PostgreSQL Timezone Error Fixed 🔴/🟡/🟢)
 app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
     const { qrCodeId } = req.params;
     const sql = 'SELECT product_name, expiry_date FROM products WHERE qr_code_id = $1';
@@ -58,25 +58,30 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
         }
 
         const product = results.rows[0];
-        const expiryDate = new Date(product.expiry_date);
-        const today = new Date();
+        
+        // 1. PostgreSQL தேதியை 'YYYY-MM-DD' ஸ்ட்ரிங்காக மாற்றி, லோக்கல் நள்ளிரவாக செட் செய்கிறோம்
+        const rawDate = new Date(product.expiry_date);
+        const expiryDate = new Date(rawDate.getFullYear(), rawDate.getMonth(), rawDate.getDate(), 0, 0, 0, 0);
 
-        today.setHours(0,0,0,0);
-        expiryDate.setHours(0,0,0,0);
+        // 2. இன்றைய தேதியையும் லோக்கல் நள்ளிரவாக செட் செய்கிறோம்
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
+        // 3. நாட்களை மிகத் துல்லியமாகக் கணக்கிடுகிறோம்
         const timeDiff = expiryDate.getTime() - today.getTime();
-        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        const daysLeft = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
         let isExpired = false;
         let isNearExpiry = false;
 
+        // கோர் கண்டிஷன் லாஜிக்:
         if (daysLeft < 0) {
-            isExpired = true;
+            isExpired = true;       // காலாவதி ஆகிவிட்டது 🔴
         } else if (daysLeft <= 30) {
-            isNearExpiry = true;
+            isNearExpiry = true;    // இன்னும் 30 நாட்களுக்குள் காலாவதி ஆகப்போகிறது 🟡
         }
 
-        const formattedDate = expiryDate.toLocaleDateString('en-GB');
+        const formattedDate = expiryDate.toLocaleDateString('en-GB'); // DD-MM-YYYY format
 
         res.json({
             product_name: product.product_name,
@@ -88,10 +93,6 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
 });
 // 3. API: புது பொருளை டேட்டாபேஸில் சேமிக்க (Add Product to Database)
 app.post('/api/add-product', async (req, res) => {
