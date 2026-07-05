@@ -17,13 +17,12 @@ async function generateQR() {
         });
         const saveResult = await saveResponse.json();
 
-        // இங்க saveResult.success செக் செய்யப்படுகிறது
         if (saveResponse.ok && saveResult.success) {
             const qrResponse = await fetch(`/api/generate-qr?text=${encodeURIComponent(qrId)}`);
             const qrData = await qrResponse.json();
             
             qrImgTag.src = qrData.qrImage;
-            qrImgTag.style.display = 'block'; // கியூஆர் ஸ்கேனர் பெருசா டிஸ்ப்ளே ஆகும்
+            qrImgTag.style.display = 'block'; 
             alert("🎉 Product saved to Database & QR Code Generated!");
         } else {
             alert("❌ Database Save Error: " + saveResult.error);
@@ -61,14 +60,14 @@ async function verifyProduct() {
 
         const product = await response.json();
 
-        // 🔴 1. Expired நிலவரம்
+        // 🔴 1. Expired 
         if (product.isExpired) {
             resultDiv.innerHTML = `🔴 <b>EXPIRED PRODUCT</b><br><br>Product: ${product.product_name}<br>Expiry: ${product.expiry_date_formatted}<br><small>(Do Not Use!)</small>`;
             resultDiv.style.backgroundColor = "#f8d7da";
             resultDiv.style.color = "#721c24";
             resultDiv.style.borderColor = "#f5c6cb";
         } 
-        // 🟢 2. Valid நிலவரம் (மஞ்சள் இல்லாமல் நேரடியாக பச்சை காட்டும்)
+        // 🟢 2. Valid
         else {
             resultDiv.innerHTML = `🟢 <b>VALID PRODUCT (SAFE)</b><br><br>Product: ${product.product_name}<br>Expiry: ${product.expiry_date_formatted}<br><small>(${product.daysLeft} days remaining)</small>`;
             resultDiv.style.backgroundColor = "#d4edda";

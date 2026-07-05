@@ -39,7 +39,7 @@ app.get('/api/generate-qr', async (req, res) => {
     }
 });
 
-// 2. API: Add Product to Database (success: true கன்பார்ம் செய்யப்பட்டது)
+// 2. API: Add Product to Database 
 app.post('/api/add-product', async (req, res) => {
     const { product_name, expiry_date, qr_code_id } = req.body;
     if (!product_name || !expiry_date || !qr_code_id) {
@@ -48,13 +48,13 @@ app.post('/api/add-product', async (req, res) => {
     const sql = 'INSERT INTO products (product_name, expiry_date, qr_code_id) VALUES ($1, $2, $3) ON CONFLICT (qr_code_id) DO UPDATE SET product_name = $1, expiry_date = $2';
     try {
         await pool.query(sql, [product_name, expiry_date, qr_code_id]);
-        res.json({ success: true }); // இங்க 'success: true' மிக முக்கியம்!
+        res.json({ success: true }); 
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// 3. API: Verify Expiry (🟢 / 🔴 மட்டும்)
+// 3. API: Verify Expiry (🟢 / 🔴)
 app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
     const { qrCodeId } = req.params;
     const sql = 'SELECT product_name, expiry_date FROM products WHERE qr_code_id = $1';

@@ -11,7 +11,7 @@
         <h2 style="color: #007bff;">Product Expiry Scanner</h2>
         <p style="text-align: center; color: #666;">Scanning via QR Code Link...</p>
         
-        <!-- இங்க தான் கஸ்டமர்க்கு 🔴 RED / 🟢 GREEN சிக்னல் காட்டும் -->
+        <!-- 🔴 RED / 🟢 GREEN -->
         <div id="statusResult" class="status-box" style="display: block; min-height: 100px; padding: 30px; font-size: 20px;">
             Checking product database...
         </div>
@@ -22,7 +22,7 @@
     </div>
 
     <script>
-        // க்யூஆர் கோடு லிங்க்ல இருக்குற ID-ஐ தானா எடுத்து செக் பண்ற லாஜிக்
+
         window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
             const qrCodeId = urlParams.get('id');
