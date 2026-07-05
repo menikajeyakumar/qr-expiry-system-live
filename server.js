@@ -40,10 +40,11 @@ app.get('/api/generate-qr', async (req, res) => {
     }
 });
 
-// 2. API: Expiry Date-ai Verify Seidhal (The Core Logic 🔴/🟢)
+// 2. API: Expiry Date-ai Verify Seidhal (The Core Logic 🔴/🟡/🟢)
 app.get('/api/verify-expiry/:qrCodeId', (req, res) => {
     const { qrCodeId } = req.params;
 
+    // உங்க டேட்டாபேஸில் 'qr_code_id' என்று இருந்தால் இதைப் பயன்படுத்துங்கள்
     const sql = 'SELECT product_name, expiry_date FROM products WHERE qr_code_id = ?';
     db.query(sql, [qrCodeId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -59,8 +60,19 @@ app.get('/api/verify-expiry/:qrCodeId', (req, res) => {
         today.setHours(0,0,0,0);
         expiryDate.setHours(0,0,0,0);
 
-        // Core Condition: Expiry date inraiya date-ai vida munnadi irundha -> Expired!
-        const isExpired = expiryDate < today; 
+        // இரண்டு தேதிகளுக்கும் இடையே உள்ள நாட்களைக் கணக்கிடுகிறோம் (Difference in Days)
+        const timeDiff = expiryDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+        let isExpired = false;
+        let isNearExpiry = false;
+
+        // Core Conditions:
+        if (daysLeft < 0) {
+            isExpired = true;       // காலாவதி ஆகிவிட்டது 🔴
+        } else if (daysLeft <= 30) {
+            isNearExpiry = true;    // இன்னும் 30 நாட்களுக்குள் காலாவதி ஆகப்போகிறது 🟡
+        }
 
         // Namma ooru date format-க்கு (DD-MM-YYYY) mathuvom display panna easy-ah iruka
         const formattedDate = expiryDate.toLocaleDateString('en-GB');
@@ -68,11 +80,14 @@ app.get('/api/verify-expiry/:qrCodeId', (req, res) => {
         res.json({
             product_name: product.product_name,
             expiry_date_formatted: formattedDate,
-            isExpired: isExpired // true (Expired 🔴) OR false (Valid 🟢)
+            isExpired: isExpired,       // true (Expired 🔴)
+            isNearExpiry: isNearExpiry, // true (Expiring Soon 🟡)
+            daysLeft: daysLeft          // மீதமுள்ள நாட்கள்
         });
     });
 });
 
+// சர்வர் ரன் ஆகும் போர்ட் செட்டப் (இங்குதான் தட்டச்சுப் பிழை இருந்தது, இப்போது சரிசெய்யப்பட்டது)
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
