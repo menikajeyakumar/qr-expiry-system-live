@@ -39,7 +39,7 @@ app.get('/api/generate-qr', async (req, res) => {
     }
 });
 
-// 2. API: Add Product to Database
+// 2. API: Add Product to Database (success: true கன்பார்ம் செய்யப்பட்டது)
 app.post('/api/add-product', async (req, res) => {
     const { product_name, expiry_date, qr_code_id } = req.body;
     if (!product_name || !expiry_date || !qr_code_id) {
@@ -48,13 +48,13 @@ app.post('/api/add-product', async (req, res) => {
     const sql = 'INSERT INTO products (product_name, expiry_date, qr_code_id) VALUES ($1, $2, $3) ON CONFLICT (qr_code_id) DO UPDATE SET product_name = $1, expiry_date = $2';
     try {
         await pool.query(sql, [product_name, expiry_date, qr_code_id]);
-        res.json({ success: true });
+        res.json({ success: true }); // இங்க 'success: true' மிக முக்கியம்!
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// 3. API: Verify Expiry (வெறும் 🔴 / 🟢 மட்டும்)
+// 3. API: Verify Expiry (🟢 / 🔴 மட்டும்)
 app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
     const { qrCodeId } = req.params;
     const sql = 'SELECT product_name, expiry_date FROM products WHERE qr_code_id = $1';
@@ -73,7 +73,6 @@ app.get('/api/verify-expiry/:qrCodeId', async (req, res) => {
         const timeDiff = expiryDate.getTime() - today.getTime();
         const daysLeft = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-        // வெறும் 2 நிலைகள் (Expired அல்லது Valid மட்டும்)
         let isExpired = daysLeft < 0; 
         const formattedDate = expiryDate.toLocaleDateString('en-GB');
 
