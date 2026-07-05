@@ -1,20 +1,18 @@
 {
-  "name": "qr-expiry-system",
+  "name": "qr-expiry-system-live",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "QR Code Expiry Detector with Green, Yellow, and Red alert system",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "mysql2": "^3.22.5",
-    "nodemon": "^3.1.14",
-    "qrcode": "^1.5.4"
-  }
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "mysql2": "^3.0.0",
+    "pg": "^8.11.0",
+    "qrcode": "^1.5.1"
+  },
+  "author": "",
+  "license": "ISC"
 }
