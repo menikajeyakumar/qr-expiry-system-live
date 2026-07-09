@@ -3,53 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Expiry Detector</title>
+    <title>Product Expiry Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .section:last-child { border: none; }
+        .admin-section { background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 30px; }
         h3 { color: #0066cc; margin-top: 0; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #0066cc; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        button:hover { background-color: #0052a3; }
-        img { display: block; margin: 15px auto; max-width: 180px; border: 1px solid #ddd; padding: 5px; border-radius: 5px; background: white; }
-        .status-box { padding: 15px; margin-top: 15px; border-radius: 8px; font-weight: bold; text-align: center; border: 1px solid transparent; display: none; }
+        input[type="file"] { margin-bottom: 10px; display: block; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        
+        /* Dashboard Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #0066cc; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        /* Status Badges */
+        .btn-check { background-color: #0066cc; font-size: 13px; padding: 6px 12px; border-radius: 4px; }
+        .btn-check:hover { background-color: #0052a3; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .status-valid { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-expired { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>QR Code Expiry Detector</h2>
+        <h2>📦 Product Expiry Management Dashboard</h2>
 
-        <div class="section">
-            <h3>Generate QR Code</h3>
-            
-            <label>Product Name:</label>
-            <input type="text" id="pName" placeholder="e.g., Milk">
-            
-            <label>Unique QR ID:</label>
-            <input type="text" id="pId" placeholder="e.g., QR_MILK_001">
-            
-            <label>Expiry Date:</label>
-            <input type="date" id="pExpiry">
-            
-            <button onclick="generateQR()">Generate QR Code</button>
-            
-            <img id="qrCodeImage" src="" alt="QR Code will appear here" style="display: none;">
+        <div class="admin-section">
+            <h3>Admin Panel: Bulk Upload Products</h3>
+            <label style="font-weight: bold; display:block; margin-bottom:5px;">Select CSV File (product_name, expiry_date, qr_code_id):</label>
+            <input type="file" id="csvFile" accept=".csv">
+            <button onclick="uploadCSV()">Upload to Database</button>
         </div>
 
-        <div class="section">
-            <h3>Verify Product Expiry</h3>
+        <div>
+            <h3>Available Products List</h3>
+            <p style="color: #666; font-size: 14px;">கீழே இருக்கும் ப்ராடக்ட்டை கிளிக் செய்து எக்ஸ்பைரி ஸ்டேட்டஸ் சரிபார்க்கவும்:</p>
             
-            <label>Enter or Scan QR ID:</label>
-            <input type="text" id="vId" placeholder="Enter QR ID here">
-            
-            <button onclick="verifyProduct()">Check Expiry Status</button>
-            
-            <div id="statusResult" class="status-box"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>QR Code ID</th>
+                        <th>Action / Status</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    </tbody>
+            </table>
         </div>
     </div>
 
